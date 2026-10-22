@@ -1,0 +1,25 @@
+name: Build plugin
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        run: cmake -B build
+      - name: Configure (macOS universal)
+        if: runner.os == 'macOS'
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release "-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"
+      - name: Build
+        run: cmake --build build --config Release --parallel
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AtelierDebussy-${{ runner.os }}
+          path: build/AtelierDebussy_artefacts/Release/VST3
